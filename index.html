@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#120f2e"/>
+<title>MémoRise</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Georgia,serif;-webkit-tap-highlight-color:transparent}
+body{background:#f5f3ef;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#topbar{background:#120f2e;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#appname{color:#fff;font-size:15px;font-weight:bold;flex:1}
+.langbtn{background:rgba(255,255,255,0.1);border:1px solid #2a2050;border-radius:6px;color:#d8b4fe;font-size:11px;font-weight:bold;padding:4px 9px;cursor:pointer}
+#content{flex:1;overflow-y:auto;overflow-x:hidden}
+#tabbar{display:flex;background:#fff;border-top:1px solid #ddd;flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 2px 7px;background:none;border:none;cursor:pointer;font-size:8px;color:#9ca3b8;font-family:Georgia,serif;gap:1px}
+.tab.active{color:#7c3aed;font-weight:bold}
+.tab span{font-size:19px}
+h2{font-size:17px;color:#1a1a2e;margin-bottom:8px}
+p.desc{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:12px}
+input,textarea,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:Georgia,serif;background:#f8f6f2;outline:none;margin-bottom:10px;color:#1a1a2e}
+textarea{min-height:80px;resize:vertical}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;font-family:Georgia,serif;background:linear-gradient(135deg,#7c3aed,#c026d3);color:#fff;margin-bottom:8px}
+.btn:disabled{background:#ddd;color:#999;cursor:default}
+.btn.outline{background:none;border:1px solid #ddd;color:#475569}
+.btn.danger{background:#ef4444}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #e8e4de}
+.card.green{background:#f0fdf8;border-color:#6ee7b7}
+.word{font-size:17px;font-weight:bold;color:#1a1a2e;margin-bottom:4px}
+.def{font-size:13px;color:#475569;line-height:1.5;margin-bottom:4px}
+.ex{font-size:12px;color:#7c8a9e;font-style:italic;margin-bottom:6px}
+.pill{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:bold}
+.iconbtn{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 5px}
+.empty{text-align:center;padding:40px 20px}
+.emptyicon{font-size:48px;margin-bottom:12px}
+.emptytitle{font-size:16px;font-weight:bold;color:#475569;margin-bottom:8px}
+.emptydesc{font-size:13px;color:#94a3b8;max-width:280px;margin:0 auto;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.topicbtn{padding:10px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-family:Georgia,serif;color:#475569;text-align:left}
+.topicbtn.sel{border:2px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-weight:bold}
+.termbtn{display:inline-block;padding:7px 14px;margin:4px;border:1px solid #e2e0db;border-radius:20px;background:#fff;cursor:pointer;font-size:13px;font-family:Georgia,serif;color:#475569}
+.termbtn.sel{border:2px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-weight:bold}
+.termbtn.saved{border:1.5px solid #6ee7b7;background:#f0fdf8;color:#065f46;cursor:default}
+.seclbl{font-size:11px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;display:block}
+.savebtn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;font-family:Georgia,serif;transition:all 0.2s}
+.savebtn.active{background:linear-gradient(135deg,#7c3aed,#c026d3);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+.savebtn.inactive{background:#e2e0db;color:#94a3b8;cursor:default}
+.toast{position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:#120f2e;color:#a7f3d0;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.boostcard{background:#fff;border-radius:13px;padding:14px;margin-bottom:9px;border:1px solid #e8e4de;cursor:pointer;display:flex;align-items:center;gap:12px}
+.spin{width:32px;height:32px;border:3px solid #eee;border-top:3px solid #7c3aed;border-radius:50%;animation:spin 0.8s linear infinite;margin:20px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wotdcard{background:linear-gradient(135deg,#120f2e,#1e1545);border-radius:16px;padding:20px 16px;margin-bottom:14px;color:#fff}
+.streak{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;border:1px solid #fbbf24}
+.langpicker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.lpbtn{padding:7px 4px;border:1px solid #e2e0db;border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-family:Georgia,serif;color:#475569;text-align:center}
+.lpbtn.sel{border:2px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div style="width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#c026d3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:11px;font-style:italic;flex-shrink:0">M↑</div>
+  <div id="appname">MémoRise</div>
+  <button class="langbtn" onclick="toggleLang()" id="langbtn">FR</button>
+</div>
+<div id="content"></div>
+<div id="tabbar"></div>
+<div id="toast-el" class="toast" style="display:none"></div>
+
+<script>
+// ── BUILT-IN TERM DATABASE ─────────────────────────────────────────────────────
+const DB = {
+  en: {
+    "My Job / Career": {
+      icon:"💼",
+      "Leadership & Management":["Accountability|Being responsible for outcomes and decisions|She demonstrated strong accountability by owning the project delay.|Work","Delegation|Assigning tasks to others based on their strengths|Effective delegation freed up the manager to focus on strategy.|Work","Strategic thinking|Planning with long-term goals in mind|Her strategic thinking helped the team anticipate market changes.|Work","Stakeholder|Anyone with an interest in the outcome of a project|Keeping stakeholders informed is key to project success.|Work","Deliverable|A tangible result or output produced by work|The final report was the main deliverable for the quarter.|Work","Milestone|A key checkpoint marking significant progress|Reaching the testing milestone meant they were on schedule.|Work","KPI|Key Performance Indicator — a measurable goal|The team tracked KPIs every week to measure progress.|Work","Governance|The framework of rules guiding how work is managed|Strong governance ensures projects stay aligned with strategy.|Work","Risk management|Identifying and reducing potential problems|Good risk management prevented costly surprises.|Work","Change management|Managing how people adapt to new processes|The change management plan helped staff embrace the new system.|Work","Capacity planning|Ensuring enough resources to meet demand|Capacity planning revealed the team was overcommitted next quarter.|Work","Business case|A document justifying why a project should happen|A strong business case secured funding for the initiative.|Work","Baseline|The approved plan used to measure performance|Any deviation from the baseline required formal approval.|Work","Escalation|Raising an issue to a higher authority|The project manager used escalation when the vendor missed deadlines.|Work","Dashboard|A visual summary of project status and metrics|The executive dashboard showed all projects at a glance.|Work"],
+      "Professional Skills":["Collaboration|Working jointly with others toward a shared goal|Cross-department collaboration improved the product launch.|Work","Communication|The clear exchange of information and ideas|Effective communication reduced misunderstandings on the team.|Work","Problem-solving|Finding solutions to difficult situations|Her problem-solving skills saved the project from failure.|Work","Critical thinking|Analyzing facts to form a well-reasoned judgment|Critical thinking helped him spot the flaw in the proposal.|Work","Adaptability|The ability to adjust to new conditions|Adaptability is essential in a fast-changing workplace.|Work","Initiative|Taking action without being asked|She showed initiative by identifying the issue before it escalated.|Work","Resilience|The ability to recover quickly from difficulties|His resilience helped the team push through a difficult quarter.|Work","Mentorship|Guiding and supporting someone less experienced|Her mentorship helped the junior analyst grow quickly.|Work","Networking|Building professional relationships|Networking at the conference led to a valuable partnership.|Work","Negotiation|Reaching agreement through discussion|Strong negotiation skills secured a better contract rate.|Work"],
+      "Workplace Terms":["Onboarding|The process of integrating a new employee|A structured onboarding program improves retention.|Work","Performance review|A formal evaluation of an employee's work|Her performance review highlighted both strengths and growth areas.|Work","Remote work|Working from a location outside the office|Remote work policies changed significantly after 2020.|Work","Hybrid work|A mix of remote and in-office work|The hybrid work model offered employees more flexibility.|Work","Agenda|A list of topics to be discussed in a meeting|She sent the agenda 24 hours before the meeting.|Work","Minutes|A written record of what was discussed in a meeting|The minutes were circulated to all attendees within the day.|Work","Action items|Tasks assigned during a meeting|All action items were captured and assigned before the meeting ended.|Work","Feedback|Information given to help someone improve|Constructive feedback is a gift to anyone who wants to grow.|Work","Productivity|The efficiency with which work is completed|The new software dramatically improved team productivity.|Work","Workflow|The sequence of steps to complete a task|Mapping the workflow revealed unnecessary steps in the process.|Work"]
+    },
+    "Sports & Hobbies": {
+      icon:"⛳",
+      "Golf":["Handicap|A numerical measure of a golfer's ability|His handicap dropped from 18 to 12 after a summer of practice.|Hobby","Birdie|One stroke under par on a hole|She celebrated her first birdie on the 7th hole.|Hobby","Bogey|One stroke over par on a hole|A bogey on the last hole cost him the match.|Hobby","Par|The standard number of strokes for a hole|He finished the round at even par — a great result.|Hobby","Eagle|Two strokes under par on a hole|An eagle on the par-5 sixth put her in the lead.|Hobby","Fairway|The mowed area between tee and green|Keep the ball on the fairway for the best approach.|Hobby","Rough|The longer grass beside the fairway|His drive landed in the rough making the next shot difficult.|Hobby","Putting green|The smooth area around the hole|She spent an hour practicing on the putting green.|Hobby","Tee box|The starting area for each hole|Players must tee off from within the tee box markers.|Hobby","Caddie|A person who carries a golfer's bag and advises|His caddie recommended a 7-iron for the approach shot.|Hobby","Fore|A warning shouted when a ball may hit someone|He yelled fore after his shot veered toward another group.|Hobby","Back nine|The second set of nine holes on a course|She played her best golf on the back nine.|Hobby"],
+      "Tennis":["Ace|A serve the opponent cannot touch|His powerful serve produced three aces in a row.|Hobby","Deuce|A tie score of 40-40 in a game|They played six deuces before she finally won the game.|Hobby","Volley|Hitting the ball before it bounces|His crisp volley at the net ended the rally.|Hobby","Baseline|The line at the back of the court|She stayed on the baseline and controlled the rally.|Hobby","Topspin|Forward rotation on the ball|Heavy topspin made his shots dip sharply into the court.|Hobby","Double fault|Two consecutive failed serves|A double fault at match point cost him the set.|Hobby","Break point|A chance to win a game on the opponent's serve|She converted the break point to take the lead.|Hobby","Grand Slam|The four major tennis tournaments|Winning a Grand Slam is every tennis player's dream.|Hobby"]
+    },
+    "Health & Medical": {
+      icon:"🏥",
+      "General Health":["Inflammation|The body's response to injury or infection|Chronic inflammation is linked to many serious diseases.|Health","Metabolism|The process of converting food into energy|A healthy metabolism helps maintain a stable weight.|Health","Immune system|The body's defense against illness|Regular exercise strengthens the immune system.|Health","Chronic|A condition lasting a long time|Chronic back pain affects millions of people worldwide.|Health","Diagnosis|The identification of an illness|An early diagnosis greatly improves treatment outcomes.|Health","Prognosis|The likely outcome of a medical condition|The doctor gave a positive prognosis after the surgery.|Health","Symptom|A sign that something is wrong with the body|Fatigue is a common symptom of many conditions.|Health","Preventive care|Actions taken to prevent illness|Regular checkups are an important part of preventive care.|Health","Blood pressure|The force of blood against artery walls|High blood pressure increases the risk of heart disease.|Health","Cholesterol|A fatty substance in the blood|Keeping cholesterol levels healthy protects the heart.|Health"],
+      "Mental Health":["Anxiety|A feeling of worry or unease|Managing anxiety through mindfulness has helped many people.|Health","Mindfulness|Paying full attention to the present moment|Daily mindfulness practice reduces stress and improves focus.|Health","Burnout|Exhaustion from prolonged stress|Burnout affects productivity and personal wellbeing.|Health","Resilience|The ability to recover from mental hardship|Building resilience helps people cope with life's challenges.|Health","Therapy|Treatment of a condition through discussion|Cognitive behavioral therapy is highly effective for anxiety.|Health","Self-care|Actions taken to protect one's own wellbeing|Self-care is not selfish — it is necessary.|Health","Stress|Mental or emotional strain|Unmanaged stress can have serious physical consequences.|Health"]
+    },
+    "Real Estate & Finance": {
+      icon:"🏠",
+      "Real Estate":["Mortgage|A loan used to purchase property|They secured a mortgage at a competitive interest rate.|Finance","Amortization|The gradual paying off of a loan|A 25-year amortization is standard in Canada.|Finance","Down payment|Money paid upfront when buying property|They saved for three years for the down payment.|Finance","Equity|The value of a property minus what is owed|As they paid down the mortgage their equity grew.|Finance","Appraisal|A professional estimate of a property's value|The bank required an appraisal before approving the loan.|Finance","Title|Legal ownership of a property|A title search ensures there are no claims on the property.|Finance","Closing costs|Fees paid at the completion of a real estate sale|Closing costs can add up to 2-4% of the purchase price.|Finance","Interest rate|The percentage charged on a loan|A lower interest rate saves thousands over the life of a mortgage.|Finance"]},
+    "Arts & Culture": {
+      icon:"🎨",
+      "Wine":["Terroir|The environment where wine grapes are grown|The unique terroir of Burgundy produces exceptional wines.|Hobby","Tannins|Compounds that give red wine its dry feel|High tannins make a young Cabernet feel astringent.|Hobby","Bouquet|The complex aroma of a mature wine|The bouquet revealed notes of cherry and cedar.|Hobby","Vintage|The year the grapes were harvested|The 2015 vintage is considered exceptional in Bordeaux.|Hobby","Sommelier|A trained wine professional|The sommelier recommended a Pinot Noir with the salmon.|Hobby","Decanting|Pouring wine into a vessel to let it breathe|Decanting a young red wine softens its tannins.|Hobby","Dry|A wine with little to no residual sugar|She preferred a dry white wine with her seafood.|Hobby","Varietal|A wine made from a single grape variety|Chardonnay is one of the world's most popular varietals.|Hobby"]},
+    "Food & Cooking": {
+      icon:"🍳",
+      "Cooking Techniques":["Mise en place|Having everything prepared before cooking|Professional chefs rely on mise en place to cook efficiently.|Hobby","Sauté|Cooking quickly in a small amount of fat|Sauté the onions until they are soft and golden.|Hobby","Braise|Slow cooking in liquid after browning|Braised short ribs become incredibly tender after hours of cooking.|Hobby","Julienne|Cutting food into thin matchstick strips|She julienned the carrots for the salad.|Hobby","Reduction|Concentrating a liquid by simmering|A red wine reduction adds richness to any sauce.|Hobby","Blanching|Briefly boiling then cooling in ice water|Blanching the green beans kept them bright and crisp.|Hobby","Emulsification|Combining two liquids that do not normally mix|Emulsification is the secret behind a creamy vinaigrette.|Hobby","Al dente|Pasta cooked to be firm when bitten|Italians insist that pasta should always be al dente.|Hobby"]},
+    "Personal Development": {
+      icon:"🧠",
+      "Vocabulary Builders":["Eloquent|Fluent and persuasive in speech|Her eloquent presentation impressed the entire board.|Social","Astute|Having a sharp and accurate perception|His astute observations changed the direction of the debate.|Social","Tenacious|Persistent and determined|She was tenacious in pursuing her professional goals.|Social","Articulate|Able to express ideas clearly and effectively|An articulate communicator earns respect in any room.|Social","Discerning|Having good judgment and taste|A discerning eye for detail sets great work apart.|Social","Pragmatic|Dealing with things sensibly and practically|A pragmatic approach solved the problem quickly.|Social","Candid|Truthful and straightforward|She appreciated his candid feedback on her proposal.|Social","Empathetic|Understanding and sharing the feelings of others|An empathetic leader builds a loyal and motivated team.|Social"],
+      "Idioms & Sayings":["Burn the midnight oil|To work late into the night|She burned the midnight oil to finish the report on time.|Social","Hit the ground running|To start something with great energy|The new hire hit the ground running from day one.|Social","The ball is in your court|It is your turn to take action|I have made my offer — the ball is in your court now.|Social","Think outside the box|To think creatively beyond normal limits|We need to think outside the box to solve this problem.|Social","Actions speak louder than words|What you do matters more than what you say|He proved his commitment — actions speak louder than words.|Social","A blessing in disguise|Something that seems bad but turns out good|Losing that job was a blessing in disguise.|Social","Under the weather|Feeling slightly ill|She stayed home because she was feeling under the weather.|Social","Every cloud has a silver lining|Every bad situation has something positive|He failed the exam but every cloud has a silver lining — he learned more by retrying.|Social","Cut to the chase|To get to the point quickly|Let's cut to the chase — what is your decision?|Social","The bigger picture|The overall situation|She reminded the team to keep the bigger picture in mind.|Social"]}
+  },
+  fr: {
+    "Mon travail / Carrière": {
+      icon:"💼",
+      "Leadership & Gestion":["Responsabilité|Être responsable des résultats et des décisions|Elle a démontré une grande responsabilité en assumant le retard du projet.|Work","Délégation|Confier des tâches selon les forces de chacun|Une délégation efficace a permis au gestionnaire de se concentrer sur la stratégie.|Work","Pensée stratégique|Planifier en gardant les objectifs à long terme en tête|Sa pensée stratégique a aidé l'équipe à anticiper les changements du marché.|Work","Partie prenante|Toute personne ayant un intérêt dans le résultat d'un projet|Tenir les parties prenantes informées est essentiel au succès du projet.|Work","Livrable|Un résultat tangible produit par le travail|Le rapport final était le principal livrable du trimestre.|Work","Jalon|Un point de contrôle clé marquant une progression significative|Atteindre le jalon de test signifiait qu'ils étaient dans les délais.|Work","Indicateur clé de performance|Une mesure permettant d'évaluer l'atteinte des objectifs|L'équipe suivait ses indicateurs clés chaque semaine.|Work","Gouvernance|Le cadre de règles guidant la gestion du travail|Une bonne gouvernance assure l'alignement des projets avec la stratégie.|Work","Gestion des risques|Identifier et réduire les problèmes potentiels|Une bonne gestion des risques a évité des surprises coûteuses.|Work","Gestion du changement|Accompagner les personnes dans l'adoption de nouveaux processus|Le plan de gestion du changement a aidé le personnel à adopter le nouveau système.|Work"]},
+    "Sports & Loisirs": {
+      icon:"⛳",
+      "Golf":["Handicap|Une mesure numérique du niveau d'un golfeur|Son handicap est passé de 18 à 12 après un été d'entraînement.|Hobby","Birdie|Un coup sous le par sur un trou|Elle a célébré son premier birdie au 7e trou.|Hobby","Bogey|Un coup au-dessus du par sur un trou|Un bogey au dernier trou lui a coûté la partie.|Hobby","Par|Le nombre de coups standard pour un trou|Il a terminé le parcours au par — un excellent résultat.|Hobby","Normale du parcours|Le score de référence pour l'ensemble du parcours|Terminer sous la normale du parcours est l'objectif de tout golfeur.|Hobby"]},
+    "Développement personnel": {
+      icon:"🧠",
+      "Vocabulaire enrichi":["Éloquent|Qui s'exprime avec aisance et persuasion|Sa présentation éloquente a impressionné tout le conseil.|Social","Perspicace|Qui a une perception vive et précise|Ses observations perspicaces ont changé l'orientation du débat.|Social","Tenace|Persistant et déterminé|Elle était tenace dans la poursuite de ses objectifs professionnels.|Social","Articulé|Capable d'exprimer clairement ses idées|Un communicateur articulé gagne le respect dans n'importe quelle salle.|Social","Pragmatique|Qui aborde les choses de façon sensée et pratique|Une approche pragmatique a résolu le problème rapidement.|Social","Candide|Honnête et direct|Elle a apprécié son retour candide sur sa proposition.|Social","Empathique|Comprendre et partager les sentiments des autres|Un leader empathique bâtit une équipe loyale et motivée.|Social"]}}
+};
+
+// ── WOTD DATABASE ──────────────────────────────────────────────────────────────
+const WOTD_DB = {
+  en:[
+    {word:"Tenacious",pronunciation:"teh-NAY-shus",type:"Power Adjective",definition:"Persistent and determined, refusing to give up despite difficulties. Someone tenacious holds firmly to their goals even under pressure.",example1:"Her tenacious approach to negotiation secured the best contract the company had ever signed.",example2:"You have to be tenacious to succeed in a competitive job market — persistence always pays off.",origin:"From Latin 'tenax' meaning holding fast, from 'tenere' — to hold.",tip:"Use it when describing someone who doesn't give up. It sounds far more powerful than just saying 'persistent'."},
+    {word:"Burn the midnight oil",pronunciation:"burn the MID-nite oil",type:"Idiom / Saying",definition:"To work or study late into the night. This expression comes from the days when people used oil lamps for light.",example1:"The entire team burned the midnight oil to meet the deadline for the client proposal.",example2:"She burned the midnight oil preparing for her presentation and it clearly showed.",origin:"First recorded in the 17th century when oil lamps were the only source of light for nighttime work.",tip:"Use this in conversation to describe hard work and dedication — it paints a vivid picture of effort."},
+    {word:"Paradigm shift",pronunciation:"PAIR-a-dime shift",type:"Professional Expression",definition:"A fundamental change in the way something is understood or done. It signals a major transformation in thinking or approach.",example1:"The move to remote work represented a paradigm shift in how organizations manage their teams.",example2:"Her research caused a paradigm shift in how doctors approach chronic pain treatment.",origin:"Coined by philosopher Thomas Kuhn in 1962 to describe revolutionary changes in scientific thinking.",tip:"Use it when describing a major change in thinking or practice — it signals sophisticated business vocabulary."},
+    {word:"Eloquent",pronunciation:"EL-oh-kwent",type:"Power Adjective",definition:"Fluent, persuasive and beautifully expressive in speech or writing. An eloquent person communicates with grace and clarity that moves others.",example1:"Her eloquent closing statement persuaded the committee to approve the budget increase.",example2:"He gave such an eloquent toast at the dinner that everyone in the room was moved.",origin:"From Latin 'eloqui' — to speak out, combining 'ex' (out) and 'loqui' (to speak).",tip:"Calling someone eloquent is one of the highest compliments you can give a communicator."},
+    {word:"Astute",pronunciation:"a-STOOT",type:"Power Adjective",definition:"Having a sharp and accurate perception of a situation. An astute person quickly understands what others might miss.",example1:"Her astute analysis of the market data revealed an opportunity no one else had noticed.",example2:"He was astute enough to realize the offer was too good to be true.",origin:"From Latin 'astutus' meaning crafty or shrewd, rooted in 'astus' meaning cleverness.",tip:"Use astute to describe sharp judgment — it implies intelligence without being arrogant."},
+    {word:"Every cloud has a silver lining",pronunciation:"EV-ree cloud has a SIL-ver LY-ning",type:"Idiom / Saying",definition:"Every difficult or negative situation has something positive to be found within it. A reminder to look for hope in hard times.",example1:"Losing the contract was painful, but every cloud has a silver lining — it led us to a better client.",example2:"She reminded herself that every cloud has a silver lining when the project was cancelled.",origin:"Popularized by John Milton in 1634 in his masque 'Comus', referring to the bright edge of a cloud lit by the moon.",tip:"Use this to encourage someone going through a tough time — it shows wisdom and optimism."},
+    {word:"Leverage",pronunciation:"LEV-er-ij",type:"Professional Expression",definition:"To use something to its maximum advantage. In business it means using available resources, relationships or strengths to achieve greater results.",example1:"She leveraged her network to secure three new clients within the first month.",example2:"We need to leverage our existing technology before investing in new solutions.",origin:"From 'lever' — a simple machine that multiplies force. The concept of using a small input to create a large output.",tip:"A power word in business settings — using it signals strategic thinking."},
+    {word:"Candid",pronunciation:"KAN-did",type:"Power Adjective",definition:"Truthful and straightforward, even when the truth is difficult. A candid person says what they really mean with honesty and courage.",example1:"I appreciate your candid feedback — it helps me improve far more than polite silence.",example2:"She gave a candid assessment of the situation that everyone in the room needed to hear.",origin:"From Latin 'candidus' meaning white or pure — symbolizing honesty and transparency.",tip:"Use candid when you want to signal that you will be honest. It prepares the listener for a real conversation."},
+    {word:"Think outside the box",pronunciation:"think OUT-side the box",type:"Idiom / Saying",definition:"To think creatively, beyond conventional or expected approaches. To find innovative solutions that others might overlook.",example1:"The team was encouraged to think outside the box when designing the new customer experience.",example2:"Sometimes you have to think outside the box to solve a problem that has stumped everyone else.",origin:"Inspired by the nine-dot puzzle, where solving it requires drawing lines outside the perceived boundary.",tip:"Use it in brainstorming or innovation discussions — it signals openness to creative thinking."},
+    {word:"Discerning",pronunciation:"dih-ZERN-ing",type:"Power Adjective",definition:"Having the ability to judge well and distinguish quality. A discerning person notices details and nuances that others miss.",example1:"Her discerning eye for talent helped build one of the strongest teams in the company.",example2:"He was a discerning reader who could instantly spot a weak argument.",origin:"From Latin 'discernere' meaning to separate or distinguish — to see clearly what others cannot.",tip:"Use discerning to describe refined judgment — it elevates any description of taste, perception or skill."},
+    {word:"The ball is in your court",pronunciation:"the ball is in your COURT",type:"Idiom / Saying",definition:"It is your turn to take action or make a decision. The responsibility has shifted to you.",example1:"I have submitted my proposal and answered all your questions — the ball is in your court now.",example2:"She told him she was open to reconciliation — the ball was in his court.",origin:"From tennis, where the ball being on your side of the court means it is your turn to play.",tip:"Use this confidently to signal that you have done your part and are waiting for a response."},
+    {word:"Pragmatic",pronunciation:"prag-MAT-ik",type:"Power Adjective",definition:"Dealing with things in a practical and sensible way rather than following fixed ideas. A pragmatic person focuses on what actually works.",example1:"A pragmatic approach to the budget problem yielded results where theoretical plans had failed.",example2:"She was pragmatic about the setback and immediately began planning the next steps.",origin:"From Greek 'pragma' meaning deed or action — focusing on practical consequences over abstract theory.",tip:"Use pragmatic to show you are solution-focused and results-oriented — highly valued in any workplace."}
+  ],
+  fr:[
+    {word:"Tenace",pronunciation:"teh-NASS",type:"Adjectif puissant",definition:"Persistant et déterminé, refusant d'abandonner malgré les difficultés. Une personne tenace s'accroche fermement à ses objectifs même sous pression.",example1:"Son approche tenace en négociation a permis d'obtenir le meilleur contrat que l'entreprise ait jamais signé.",example2:"Il faut être tenace pour réussir dans un marché du travail compétitif.",origin:"Du latin 'tenax' signifiant qui tient ferme, de 'tenere' — tenir.",tip:"Utilisez-le pour décrire quelqu'un qui ne abandonne pas. C'est bien plus percutant que 'persistant'."},
+    {word:"Brûler l'huile de minuit",pronunciation:"broo-LAY lweel de mee-NWEE",type:"Expression / Proverbe",definition:"Travailler ou étudier tard dans la nuit. Cette expression vient de l'époque où les gens utilisaient des lampes à huile pour s'éclairer.",example1:"Toute l'équipe a brûlé l'huile de minuit pour respecter la date limite de la proposition client.",example2:"Elle a brûlé l'huile de minuit pour préparer sa présentation et cela se voyait clairement.",origin:"Enregistrée pour la première fois au XVIIe siècle quand les lampes à huile étaient la seule source de lumière.",tip:"Utilisez cette expression pour décrire le travail acharné et le dévouement."},
+    {word:"Changement de paradigme",pronunciation:"shanj-MON de pa-ra-DEEM",type:"Expression professionnelle",definition:"Un changement fondamental dans la façon dont quelque chose est compris ou fait. Il signale une transformation majeure de la pensée ou de l'approche.",example1:"Le passage au travail à distance a représenté un changement de paradigme dans la gestion des équipes.",example2:"Sa recherche a provoqué un changement de paradigme dans la façon dont les médecins abordent la douleur chronique.",origin:"Inventé par le philosophe Thomas Kuhn en 1962 pour décrire les révolutions dans la pensée scientifique.",tip:"Utilisez-le pour décrire un grand changement de pensée — cela signale un vocabulaire d'affaires sophistiqué."},
+    {word:"Éloquent",pronunciation:"é-lo-KAN",type:"Adjectif puissant",definition:"Qui s'exprime avec aisance, persuasion et beauté. Une personne éloquente communique avec grâce et clarté qui touche les autres.",example1:"Son discours de clôture éloquent a convaincu le comité d'approuver l'augmentation du budget.",example2:"Il a porté un toast si éloquent au dîner que toute la salle a été touchée.",origin:"Du latin 'eloqui' — parler, combinant 'ex' (hors de) et 'loqui' (parler).",tip:"Qualifier quelqu'un d'éloquent est l'un des plus grands compliments que vous puissiez faire à un communicateur."}
+  ]
+};
+
+// ── MEMORY TIPS ────────────────────────────────────────────────────────────────
+const TIPS = {
+  en:[
+    ["🔁","Spaced Repetition","Science","Reviewing at increasing intervals is the most powerful memorization method ever discovered. Revisit a word after 1 day, then 3 days, then a week. Each review deepens the memory trace in your brain.","Review your not-mastered terms every day. Mark ✓ only when it feels truly automatic — not just familiar."],
+    ["😴","Sleep Is Your Memory Superpower","Lifestyle","During deep sleep your brain consolidates the day's learning into long-term memory. Sleeping after studying can literally double your recall the next day. All-nighters actually make memory worse.","Study your terms for 10 minutes before bed. You will wake up having retained more than you expect."],
+    ["🗣️","Say It Out Loud","Technique","Saying a word activates speech production, hearing, and motor memory at once — three systems reinforcing the same idea. This 'production effect' makes words stick 4x better than silent reading.","When you learn a new term, say it out loud twice. Better still — use it in a full sentence from your own life."],
+    ["🧩","The Bilingual Brain Advantage","Science","People who regularly switch between two languages have stronger memory, better attention control, and delayed cognitive decline. Your bilingual practice is not just useful — it is actively protecting your brain.","When you add a translation to a term, you reinforce memory in two neural networks at once. Use that feature."],
+    ["🎯","Context Makes Words Stick","Technique","Words learned in isolation are forgotten quickly. Words learned with a story, image, or personal connection stay for life. That is why example sentences matter so much — they anchor the word to a real moment.","Write example sentences from YOUR life — not generic ones. Personal examples are remembered far longer."],
+    ["🏃","Exercise Boosts Memory","Lifestyle","A 20-minute walk before or after studying increases BDNF — the protein your brain needs to form new memories — and boosts blood flow to the hippocampus, the brain's memory centre.","Take a short walk before any meeting or event where you want your vocabulary to be sharp."],
+    ["🎮","Games Accelerate Retention","Technique","Active recall — being tested on something — is far more effective than passive review. When you play the Memory Game you force your brain to retrieve information, which strengthens neural pathways far more than re-reading.","Play the Memory Game at least 3 times per week. Medium difficulty is the sweet spot for learning."],
+    ["🌐","Use New Words Immediately","Technique","When you learn a new word the memory trace is fragile. Using it in conversation or writing within 24 hours dramatically increases the chance it becomes permanent. Use it or lose it is neurologically true.","After any learning session, pick 2-3 terms and use them in your next email, conversation, or note in this app."],
+    ["🧘","Stress Blocks Memory","Lifestyle","Chronic stress floods your brain with cortisol, which literally shrinks the hippocampus over time and makes forming new memories harder. Managing stress is not soft — it is neurological self-care.","Before an important meeting or presentation, take 5 slow deep breaths. This reduces cortisol and improves recall."],
+    ["🔗","Link New to Known","Technique","Your brain learns best by connecting new information to something it already knows — called elaborative encoding. The more personal connections you make the stronger the memory becomes.","When adding a term, ask yourself: what does this remind me of? Note that connection somewhere."],
+    ["📝","Writing Encodes Deeper","Science","Studies from Princeton and UCLA found that people who write by hand remember concepts significantly better than those who type. The slower pace forces your brain to process and summarize rather than just transcribe.","Use your Notes tab to jot down thoughts in your own words — paraphrasing something means you are memorizing it."],
+    ["🔆","The 50+ Memory Advantage","Science","Contrary to popular belief, vocabulary and crystallized intelligence — the ability to use accumulated knowledge and experience — actually peak in your 60s and 70s. Younger people may process faster but experienced minds understand deeper.","Before entering any important room, remind yourself: I have depth, context, and judgment that simply cannot be taught."]
+  ],
+  fr:[
+    ["🔁","La répétition espacée","Science","Réviser à intervalles croissants est la méthode de mémorisation la plus puissante jamais découverte. Revoyez un mot après 1 jour, puis 3 jours, puis une semaine. Chaque révision approfondit la trace mémorielle.","Révisez vos termes non maîtrisés chaque jour. Ne cochez ✓ que lorsque c'est vraiment automatique."],
+    ["😴","Le sommeil, superpower de la mémoire","Mode de vie","Pendant le sommeil profond votre cerveau consolide les apprentissages en mémoire à long terme. Dormir après avoir étudié peut littéralement doubler votre rappel le lendemain.","Étudiez vos termes 10 minutes avant de dormir. Vous vous réveillerez en ayant retenu plus que vous ne le pensiez."],
+    ["🗣️","Dites-le à voix haute","Technique","Prononcer un mot active la production de la parole, l'ouïe et la mémoire motrice à la fois. Cet effet de production fait adhérer les mots 4 fois mieux que la lecture silencieuse.","Quand vous apprenez un nouveau terme, dites-le à voix haute deux fois. Utilisez-le ensuite dans une phrase."],
+    ["🧩","L'avantage du cerveau bilingue","Science","Les personnes qui alternent régulièrement entre deux langues ont une mémoire plus forte et un déclin cognitif retardé. Votre pratique bilingue protège activement votre cerveau.","Quand vous ajoutez une traduction à un terme, vous renforcez la mémoire dans deux réseaux neuronaux à la fois."],
+    ["🎯","Le contexte fait adhérer les mots","Technique","Les mots appris isolément sont vite oubliés. Les mots appris avec une histoire ou un lien personnel restent pour la vie. C'est pourquoi les exemples de phrases sont si importants.","Écrivez des exemples de phrases de VOTRE vie — pas des exemples génériques. Les exemples personnels sont bien mieux retenus."],
+    ["🏃","L'exercice booste la mémoire","Mode de vie","Une marche de 20 minutes augmente le BDNF — la protéine dont votre cerveau a besoin pour former de nouveaux souvenirs — et améliore le flux sanguin vers l'hippocampe.","Faites une courte marche avant toute réunion où vous voulez que votre vocabulaire soit au mieux."],
+    ["🎮","Les jeux accélèrent la rétention","Technique","Le rappel actif est bien plus efficace que la révision passive. Quand vous jouez au Jeu de mémoire vous forcez votre cerveau à récupérer l'information, renforçant les chemins neuronaux bien plus que la relecture.","Jouez au Jeu de mémoire au moins 3 fois par semaine. La difficulté Moyen est le point idéal."],
+    ["🌐","Utilisez les nouveaux mots immédiatement","Technique","Quand vous apprenez un nouveau mot la trace mémorielle est fragile. L'utiliser dans les 24 heures augmente considérablement la probabilité qu'il devienne permanent.","Après chaque session d'apprentissage, choisissez 2-3 termes et utilisez-les dans votre prochain courriel ou conversation."],
+    ["🧘","Le stress bloque la mémoire","Mode de vie","Le stress chronique inonde votre cerveau de cortisol, qui rétrécit littéralement l'hippocampe au fil du temps et rend la formation de nouveaux souvenirs plus difficile.","Avant une réunion importante, prenez 5 respirations profondes lentes. Cela réduit le cortisol et améliore le rappel."],
+    ["🔗","Reliez le nouveau à ce que vous savez","Technique","Votre cerveau apprend mieux en connectant les nouvelles informations à ce qu'il connaît déjà — l'encodage élaboratif. Plus vous faites de connexions personnelles, plus le souvenir est solide.","Quand vous ajoutez un terme, demandez-vous : à quoi cela me fait-il penser? Notez ce lien quelque part."],
+    ["📝","Écrire grave plus profond","Science","Des études de Princeton et UCLA ont constaté que les personnes qui écrivent à la main se souviennent significativement mieux des concepts. Le rythme plus lent force le cerveau à traiter et synthétiser.","Utilisez l'onglet Notes pour noter vos pensées dans vos propres mots — paraphraser quelque chose c'est le mémoriser."],
+    ["🔆","L'avantage mémoire des 50+","Science","Contrairement aux idées reçues, le vocabulaire et l'intelligence cristallisée culminent dans les années 60-70. Les jeunes traitent peut-être plus vite mais les esprits expérimentés comprennent plus profondément.","Avant d'entrer dans toute salle importante, rappelez-vous : j'ai la profondeur, le contexte et le jugement que l'on ne peut pas enseigner."]
+  ]
+};
+
+// ── UI STRINGS ─────────────────────────────────────────────────────────────────
+const UI={
+  en:{
+    tabs:[["📚","Library"],["🔍","Discover"],["✨","Daily Word"],["📝","Notes"],["🧠","Memory"],["🎮","Game"]],
+    addBtn:"+ Add Term", searchPh:"Search your terms...",
+    noTerms:"Your library is empty",
+    noTermsDesc:"Go to Discover to browse terms for any topic — your work, a hobby, health, anything!",
+    mastered:"✓ Mastered", markMastered:"Mark as mastered",
+    showTrans:"See translation", hideTrans:"Hide",
+    discTitle:"Discover Terms",
+    discDesc:"Browse our built-in collection of professional and everyday vocabulary. Choose a topic, pick a category, then tap the terms you want to keep.",
+    step1:"Choose a topic area:",
+    step2:"Choose a category:",
+    step3:"Tap terms to select them:",
+    selectAll:"Select All", clearAll:"Clear",
+    saveSelected:"Save to My Library",
+    added:n=>`${n} term${n!==1?"s":""} saved!`,
+    inLib:"✓ Saved",
+    notesTitle:"My Notes", newNote:"+ New Note",
+    saveNote:"Save", untitled:"Untitled note",
+    noNotes:"No notes yet.", noNotesDesc:"Tap + New Note to start.",
+    noteTitlePh:"Note title...",
+    noteBodyPh:"Write anything here...\n\nIdeas:\n• Things I want to remember\n• Notes from a meeting, class or round of golf\n• Questions I want to ask\n• Goals for this week\n• What my coach / doctor / boss said",
+    wotdTitle:"Daily Word ✨", wotdSub:"One powerful word. Every day.",
+    wotdLangLbl:"Word language:",
+    getWord:"Get Today's Word", newWord:"New Word",
+    howToUse:"How to use it",
+    saveWord:"Save to My Library", wordSaved:"✓ Saved!",
+    streakLbl:"Day streak",
+    storyTitle:"📖 Mini Story", storyDesc:"A short story using this word in context — great for memory.",
+    boostTitle:"Memory Boost 🧠",
+    boostDesc:"Science-backed tips to help you remember more and stay sharp — at any age.",
+    read:"Read →",
+    gameTitle:"Memory Game", gameDesc:"Match words with their meanings. Great practice before any meeting!",
+    pickDiff:"Difficulty:", easy:"Easy (6)", medium:"Medium (10)", hard:"Hard (16)",
+    play:"Play", playAgain:"Play Again",
+    moves:"Moves", matched:"Matched", time:"Time",
+    won:"🎉 Well done!", wonDesc:(m,s)=>`${m} moves in ${s}s — your vocabulary is sharp!`,
+    notEnough:"Add at least 6 terms with definitions to play.",
+    termCard:"WORD", defCard:"MEANING",
+    addTitle:"Add Term", editTitle:"Edit Term",
+    wordLbl:"Word or phrase *", wordPh:"e.g. Tenacious, Mise en place, Birdie",
+    defLbl:"Definition", defPh:"What does this mean?",
+    exLbl:"Example sentence", exPh:"e.g. She was tenacious in her approach.",
+    transLbl:"My translation", transPh:"Your translation in any language...",
+    catLbl:"Category", tagsLbl:"Tags", tagsPh:"e.g. leadership, golf, cooking",
+    markM:"Mark as mastered",
+    saveTerm:"Save", cancel:"Cancel", remove:"Remove",
+    deleteQ:"Remove this term?",
+    deleteDesc:w=>`"${w}" will be permanently removed.`,
+    limitFull:"Library full (25 terms). Remove some to add more.",
+    cats:{All:"All",Work:"Work",Hobby:"Hobby",Health:"Health",Finance:"Finance",Social:"Social",Other:"Other"},
+  },
+  fr:{
+    tabs:[["📚","Bibliothèque"],["🔍","Découvrir"],["✨","Mot du jour"],["📝","Notes"],["🧠","Mémoire"],["🎮","Jeu"]],
+    addBtn:"+ Ajouter", searchPh:"Rechercher vos termes...",
+    noTerms:"Votre bibliothèque est vide",
+    noTermsDesc:"Allez dans Découvrir pour parcourir des termes — votre travail, un loisir, la santé, n'importe quoi!",
+    mastered:"✓ Maîtrisé", markMastered:"Marquer comme maîtrisé",
+    showTrans:"Voir traduction", hideTrans:"Masquer",
+    discTitle:"Découvrir des termes",
+    discDesc:"Parcourez notre collection intégrée de vocabulaire professionnel et quotidien. Choisissez un sujet, une catégorie, puis touchez les termes à conserver.",
+    step1:"Choisissez un domaine :",
+    step2:"Choisissez une catégorie :",
+    step3:"Touchez les termes pour les sélectionner :",
+    selectAll:"Tout sélectionner", clearAll:"Effacer",
+    saveSelected:"Sauvegarder dans ma bibliothèque",
+    added:n=>`${n} terme${n!==1?"s":""} sauvegardé${n!==1?"s":""}!`,
+    inLib:"✓ Sauvegardé",
+    notesTitle:"Mes notes", newNote:"+ Nouvelle note",
+    saveNote:"Enregistrer", untitled:"Note sans titre",
+    noNotes:"Aucune note.", noNotesDesc:"Touchez + Nouvelle note pour commencer.",
+    noteTitlePh:"Titre de la note...",
+    noteBodyPh:"Écrivez n'importe quoi ici...\n\nIdées :\n• Choses à retenir\n• Notes d'une réunion ou d'un cours\n• Questions à poser\n• Objectifs de la semaine\n• Ce que mon entraîneur / médecin / patron a dit",
+    wotdTitle:"Mot du jour ✨", wotdSub:"Un mot puissant. Chaque jour.",
+    wotdLangLbl:"Langue du mot :",
+    getWord:"Obtenir le mot du jour", newWord:"Nouveau mot",
+    howToUse:"Comment l'utiliser",
+    saveWord:"Sauvegarder dans ma bibliothèque", wordSaved:"✓ Sauvegardé!",
+    streakLbl:"Jours consécutifs",
+    storyTitle:"📖 Mini histoire", storyDesc:"Une courte histoire utilisant ce mot en contexte — excellent pour la mémoire.",
+    boostTitle:"Booster votre mémoire 🧠",
+    boostDesc:"Des conseils basés sur la science pour retenir plus et rester alerte — à tout âge.",
+    read:"Lire →",
+    gameTitle:"Jeu de mémoire", gameDesc:"Associez les mots à leurs définitions. Idéal avant une réunion!",
+    pickDiff:"Difficulté :", easy:"Facile (6)", medium:"Moyen (10)", hard:"Difficile (16)",
+    play:"Jouer", playAgain:"Rejouer",
+    moves:"Essais", matched:"Trouvés", time:"Temps",
+    won:"🎉 Bravo!", wonDesc:(m,s)=>`${m} essais en ${s}s — votre vocabulaire est affûté!`,
+    notEnough:"Ajoutez au moins 6 termes avec définitions pour jouer.",
+    termCard:"MOT", defCard:"SENS",
+    addTitle:"Ajouter un terme", editTitle:"Modifier le terme",
+    wordLbl:"Mot ou expression *", wordPh:"ex. Tenace, Mise en place, Birdie",
+    defLbl:"Définition", defPh:"Que signifie ce mot?",
+    exLbl:"Exemple de phrase", exPh:"ex. Elle était tenace dans son approche.",
+    transLbl:"Ma traduction", transPh:"Votre traduction dans n'importe quelle langue...",
+    catLbl:"Catégorie", tagsLbl:"Étiquettes", tagsPh:"ex. leadership, golf, cuisine",
+    markM:"Marquer comme maîtrisé",
+    saveTerm:"Enregistrer", cancel:"Annuler", remove:"Retirer",
+    deleteQ:"Retirer ce terme?",
+    deleteDesc:w=>`"${w}" sera définitivement retiré.`,
+    limitFull:"Bibliothèque pleine (25 termes). Supprimez-en pour en ajouter.",
+    cats:{All:"Tout",Work:"Travail",Hobby:"Loisir",Health:"Santé",Finance:"Finance",Social:"Social",Other:"Autre"},
+  }
+};
+
+const CAT_COLORS={Work:{bg:"#E3F2FD",text:"#1565C0",border:"#90CAF9"},Hobby:{bg:"#E8F5E9",text:"#2E7D32",border:"#A5D6A7"},Health:{bg:"#FCE4EC",text:"#880E4F",border:"#F48FB1"},Finance:{bg:"#FFF3E0",text:"#E65100",border:"#FFCC80"},Social:{bg:"#F3E5F5",text:"#6A1B9A",border:"#CE93D8"},Other:{bg:"#ECEFF1",text:"#37474F",border:"#B0BEC5"}};
+const LANGS=[{code:"en",label:"English",flag:"🇨🇦"},{code:"fr",label:"Français",flag:"🇫🇷"},{code:"es",label:"Español",flag:"🇪🇸"},{code:"pt",label:"Português",flag:"🇧🇷"},{code:"it",label:"Italiano",flag:"🇮🇹"},{code:"de",label:"Deutsch",flag:"🇩🇪"},{code:"zh",label:"中文",flag:"🇨🇳"},{code:"ar",label:"العربية",flag:"🇲🇦"},{code:"uk",label:"Українська",flag:"🇺🇦"},{code:"hi",label:"हिन्दी",flag:"🇮🇳"}];
+const TABS=["library","discover","wotd","notes","boost","game"];
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+const S={
+  lang:localStorage.getItem("mr-lang")||"en",
+  transLang:localStorage.getItem("mr-tlang")||"fr",
+  wotdLang:localStorage.getItem("mr-wlang")||"en",
+  tab:"library",
+  terms:JSON.parse(localStorage.getItem("mr-terms")||"[]"),
+  notes:JSON.parse(localStorage.getItem("mr-notes")||"[]"),
+  search:"",
+  showForm:false,editId:null,
+  formWord:"",formDef:"",formEx:"",formTrans:"",formCat:"Work",formTags:"",formMastered:false,
+  delId:null,
+  dTopic:null,dCat:null,dSelected:{},
+  activeNote:null,noteEditing:false,noteDraftTitle:"",noteDraftBody:"",
+  boostOpen:null,
+  wotdWord:JSON.parse(localStorage.getItem("mr-wotd")||"null"),
+  wotdIdx:parseInt(localStorage.getItem("mr-wotdi")||"0"),
+  wotdSaved:false,wotdShowStory:false,
+  streak:JSON.parse(localStorage.getItem("mr-streak")||'{"count":0,"lastDate":""}'),
+  gameState:"setup",gameDiff:"easy",gameCards:[],gameFlipped:[],gameMatched:[],gameMoves:0,gameSecs:0,gameLocked:false,
+};
+let gameTimer=null;
+
+function sv(){localStorage.setItem("mr-terms",JSON.stringify(S.terms));localStorage.setItem("mr-notes",JSON.stringify(S.notes));localStorage.setItem("mr-lang",S.lang);localStorage.setItem("mr-tlang",S.transLang);localStorage.setItem("mr-wlang",S.wotdLang);localStorage.setItem("mr-wotd",JSON.stringify(S.wotdWord));localStorage.setItem("mr-wotdi",S.wotdIdx);localStorage.setItem("mr-streak",JSON.stringify(S.streak));}
+function t(){return UI[S.lang]}
+function toggleLang(){S.lang=S.lang==="en"?"fr":"en";document.getElementById("langbtn").textContent=S.lang==="en"?"FR":"EN";sv();render()}
+function showToast(msg){const el=document.getElementById("toast-el");el.textContent=msg;el.style.display="block";setTimeout(()=>el.style.display="none",2600)}
+function cc(cat){return CAT_COLORS[cat]||CAT_COLORS.Other}
+function fmt(iso){return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}
+function shuf(a){return[...a].sort(()=>Math.random()-0.5)}
+function inLib(w){return S.terms.some(k=>k.word.toLowerCase()===w.toLowerCase())}
+function today(){return new Date().toISOString().slice(0,10)}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(){
+  const tr=t();
+  document.getElementById("tabbar").innerHTML=TABS.map((tab,i)=>`<button class="tab ${S.tab===tab?"active":""}" onclick="sw('${tab}')""><span>${tr.tabs[i][0]}</span>${tr.tabs[i][1]}</button>`).join("");
+  const el=document.getElementById("content");
+  if(S.tab==="library") el.innerHTML=rLib();
+  else if(S.tab==="discover") el.innerHTML=rDisc();
+  else if(S.tab==="wotd") el.innerHTML=rWotd();
+  else if(S.tab==="notes") el.innerHTML=rNotes();
+  else if(S.tab==="boost") el.innerHTML=rBoost();
+  else if(S.tab==="game") el.innerHTML=rGame();
+}
+function sw(tab){S.tab=tab;render()}
+
+// ── LIBRARY ────────────────────────────────────────────────────────────────────
+function rLib(){
+  const tr=t();
+  if(S.showForm) return rForm();
+  if(S.delId) return rDel();
+  const filtered=S.terms.filter(k=>{const q=S.search.toLowerCase();return!q||k.word.toLowerCase().includes(q)||(k.definition||"").toLowerCase().includes(q);});
+  let h=`<div style="padding:10px 12px;background:#faf8f5;border-bottom:1px solid #e8e4de;display:flex;gap:8px">
+    <input style="flex:1;padding:8px 10px;border-radius:9px;border:1px solid #ddd;font-size:14px;background:#f0ede8;outline:none;font-family:Georgia,serif" placeholder="${tr.searchPh}" value="${S.search}" oninput="S.search=this.value;render()">
+    <button class="btn" style="width:auto;padding:8px 13px;margin:0" onclick="oAdd()">${tr.addBtn}</button>
+  </div>`;
+  if(!filtered.length){
+    h+=`<div class="empty"><div class="emptyicon">📖</div><div class="emptytitle">${S.terms.length===0?tr.noTerms:"No results"}</div><div class="emptydesc">${S.terms.length===0?tr.noTermsDesc:"Try a different search."}</div></div>`;
+  }else{
+    h+=`<div style="padding:10px 11px 80px">`;
+    filtered.forEach(kw=>{
+      const c=cc(kw.category);
+      h+=`<div class="card ${kw.mastered?"green":""}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span class="pill" style="background:${c.bg};color:${c.text};border:1px solid ${c.border}">${tr.cats[kw.category]||kw.category}</span>
+          <div><button class="iconbtn" onclick="oEdit('${kw.id}')">✎</button><button class="iconbtn" style="color:#ef4444" onclick="S.delId='${kw.id}';render()">✕</button></div>
+        </div>
+        <div class="word">${kw.word}</div>
+        ${kw.definition?`<div class="def">${kw.definition}</div>`:""}
+        ${kw.example?`<div class="ex">"${kw.example}"</div>`:""}
+        ${kw.translation?`<button class="btn outline" style="width:auto;padding:3px 9px;margin:0 0 6px;font-size:11px" onclick="tTrans('${kw.id}')">${kw._st?(tr.hideTrans+" "):tr.showTrans} ${LANGS.find(l=>l.code===(kw.transLang||"fr"))?.flag||"🌐"}</button>${kw._st?`<div style="margin-top:4px;padding:7px 10px;background:#faf5ff;border-radius:8px;font-size:13px;color:#7c3aed;font-style:italic">${kw.translation}</div>`:""}`:``}
+        ${kw.tags&&kw.tags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${kw.tags.map(tg=>`<span style="font-size:10px;color:#7c3aed;background:#f3e8ff;border-radius:4px;padding:1px 6px">#${tg}</span>`).join("")}</div>`:""}
+        <button style="font-size:11px;padding:3px 9px;border:1px solid ${kw.mastered?"#6ee7b7":"#ddd"};border-radius:6px;background:${kw.mastered?"#d1fae5":"none"};cursor:pointer;color:${kw.mastered?"#065f46":"#64748b"};font-family:Georgia,serif" onclick="tMast('${kw.id}')">${kw.mastered?tr.mastered:tr.markMastered}</button>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  return h;
+}
+function tTrans(id){const k=S.terms.find(t=>t.id===id);if(k){k._st=!k._st;}render()}
+function tMast(id){const k=S.terms.find(t=>t.id===id);if(k)k.mastered=!k.mastered;sv();render()}
+function oAdd(){if(S.terms.length>=25){showToast(t().limitFull);return;}S.showForm=true;S.editId=null;S.formWord="";S.formDef="";S.formEx="";S.formTrans="";S.formCat="Work";S.formTags="";S.formMastered=false;render()}
+function oEdit(id){const k=S.terms.find(t=>t.id===id);if(!k)return;S.showForm=true;S.editId=id;S.formWord=k.word;S.formDef=k.definition||"";S.formEx=k.example||"";S.formTrans=k.translation||"";S.formCat=k.category;S.formTags=(k.tags||[]).join(", ");S.formMastered=!!k.mastered;render()}
+function sFrm(){
+  if(!S.formWord.trim())return;
+  const entry={id:S.editId||Date.now().toString(),word:S.formWord.trim(),definition:S.formDef.trim(),example:S.formEx.trim(),translation:S.formTrans.trim(),transLang:S.transLang,category:S.formCat,tags:S.formTags.split(",").map(x=>x.trim()).filter(Boolean),mastered:S.formMastered,createdAt:S.editId?S.terms.find(k=>k.id===S.editId)?.createdAt:new Date().toISOString()};
+  if(S.editId)S.terms=S.terms.map(k=>k.id===S.editId?entry:k);else S.terms=[entry,...S.terms];
+  S.showForm=false;S.editId=null;sv();render();
+}
+function cFrm(){S.showForm=false;S.editId=null;render()}
+function cDel(){S.delId=null;render()}
+function confDel(){S.terms=S.terms.filter(k=>k.id!==S.delId);S.delId=null;sv();render()}
+const CATS=["Work","Hobby","Health","Finance","Social","Other"];
+function rForm(){
+  const tr=t();const tlo=LANGS.find(l=>l.code===S.transLang)||LANGS[1];
+  return`<div style="padding:16px 14px 80px">
+    <div style="display:flex;align-items:center;margin-bottom:16px"><button onclick="cFrm()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;margin-right:8px">←</button><h2>${S.editId?tr.editTitle:tr.addTitle}</h2></div>
+    <label style="font-size:12px;font-weight:bold;color:#475569;display:block;margin-bottom:4px">${tr.wordLbl}</label>
+    <input placeholder="${tr.wordPh}" value="${S.formWord}" oninput="S.formWord=this.value">
+    <label style="font-size:12px;font-weight:bold;color:#475569;display:block;margin-bottom:4px">${tr.defLbl}</label>
+    <textarea placeholder="${tr.defPh}" oninput="S.formDef=this.value">${S.formDef}</textarea>
+    <label style="font-size:12px;font-weight:bold;color:#475569;display:block;margin-bottom:4px">${tr.exLbl}</label>
+    <input placeholder="${tr.exPh}" value="${S.formEx}" oninput="S.formEx=this.value">
+    <label style="font-size:12px;font-weight:bold;color:#7c3aed;display:block;margin-bottom:4px">${tlo.flag} ${tr.transLbl} <span style="font-weight:normal;color:#94a3b8;font-size:11px">(${tlo.label})</span></label>
+    <input style="border:1px solid #c4b5fd;background:#faf5ff" placeholder="${tr.transPh}" value="${S.formTrans}" oninput="S.formTrans=this.value">
+    <label style="font-size:12px;font-weight:bold;color:#475569;display:block;margin-bottom:4px">${tr.catLbl}</label>
+    <select onchange="S.formCat=this.value">${CATS.map(c=>`<option value="${c}" ${S.formCat===c?"selected":""}>${tr.cats[c]}</option>`).join("")}</select>
+    <label style="font-size:12px;font-weight:bold;color:#475569;display:block;margin-bottom:4px">${tr.tagsLbl}</label>
+    <input placeholder="${tr.tagsPh}" value="${S.formTags}" oninput="S.formTags=this.value">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:16px"><input type="checkbox" ${S.formMastered?"checked":""} onchange="S.formMastered=this.checked" style="width:16px;height:16px"><span style="font-size:13px;color:#475569">${tr.markM}</span></label>
+    <div style="display:flex;gap:10px"><button class="btn outline" onclick="cFrm()">${tr.cancel}</button><button class="btn" onclick="sFrm()" ${!S.formWord.trim()?"disabled":""}>${tr.saveTerm}</button></div>
+  </div>`;
+}
+function rDel(){const tr=t();const kw=S.terms.find(k=>k.id===S.delId);return`<div style="padding:30px 20px;text-align:center"><h2 style="margin-bottom:12px">${tr.deleteQ}</h2><p class="desc">${tr.deleteDesc(kw?.word)}</p><div style="display:flex;gap:10px"><button class="btn outline" onclick="cDel()">${tr.cancel}</button><button class="btn danger" onclick="confDel()">${tr.remove}</button></div></div>`}
+
+// ── DISCOVER ───────────────────────────────────────────────────────────────────
+function rDisc(){
+  const tr=t();
+  const db=DB[S.lang]||DB.en;
+  const topics=Object.keys(db);
+  let h=`<div style="padding:14px 12px 90px"><h2>${tr.discTitle}</h2><p class="desc">${tr.discDesc}</p>`;
+  // Step 1
+  h+=`<span class="seclbl">${tr.step1}</span><div class="grid2">`;
+  topics.forEach(topic=>{
+    h+=`<button class="topicbtn ${S.dTopic===topic?"sel":""}" onclick="selTopic('${topic}')"><span style="font-size:18px">${db[topic].icon}</span><span>${topic}</span></button>`;
+  });
+  h+=`</div>`;
+  // Step 2
+  if(S.dTopic&&db[S.dTopic]){
+    const cats=Object.keys(db[S.dTopic]).filter(k=>k!=="icon");
+    h+=`<span class="seclbl">${tr.step2}</span><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">`;
+    cats.forEach(cat=>{
+      h+=`<button style="padding:7px 14px;border:${S.dCat===cat?"2px solid #7c3aed":"1px solid #ddd"};border-radius:20px;background:${S.dCat===cat?"#f3e8ff":"#fff"};color:${S.dCat===cat?"#7c3aed":"#475569"};font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:${S.dCat===cat?"bold":"normal"}" onclick="selCat('${cat}')">${cat}</button>`;
+    });
+    h+=`</div>`;
+  }
+  // Step 3 — terms
+  if(S.dTopic&&S.dCat&&db[S.dTopic]&&db[S.dTopic][S.dCat]){
+    const terms=db[S.dTopic][S.dCat];
+    const selCount=Object.values(S.dSelected).filter(v=>v===true).length;
+    h+=`<span class="seclbl">${tr.step3}</span>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button style="font-size:12px;padding:5px 11px;border:1px solid #7c3aed;border-radius:7px;background:#f3e8ff;color:#7c3aed;cursor:pointer;font-family:Georgia,serif" onclick="selAll()">${tr.selectAll}</button>
+      <button style="font-size:12px;padding:5px 11px;border:1px solid #ddd;border-radius:7px;background:none;color:#475569;cursor:pointer;font-family:Georgia,serif" onclick="S.dSelected={};render()">${tr.clearAll}</button>
+      <span style="font-size:11px;color:#94a3b8;align-self:center">${selCount} selected</span>
+    </div>
+    <div style="margin-bottom:12px">`;
+    terms.forEach((termStr,i)=>{
+      const parts=termStr.split("|");
+      const word=parts[0];
+      const def=parts[1]||"";
+      const ex=parts[2]||"";
+      const cat=parts[3]||"Other";
+      const already=inLib(word);
+      const isSel=S.dSelected[i]===true;
+      const isDone=S.dSelected[i]==="done";
+      h+=`<div onclick="tRes(${i})" style="background:${isDone?"#f0fdf8":isSel?"#faf5ff":"#fff"};border-radius:12px;padding:13px;margin-bottom:8px;border:${isDone?"1.5px solid #6ee7b7":isSel?"2px solid #7c3aed":"1px solid #e8e4de"};cursor:${already||isDone?"default":"pointer"};display:flex;align-items:flex-start;gap:10px">
+        <div style="width:20px;height:20px;border-radius:5px;border:2px solid ${isDone?"#6ee7b7":isSel?"#7c3aed":"#ddd"};background:${isDone?"#6ee7b7":isSel?"#7c3aed":"#fff"};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-size:11px;color:#fff">${isSel||isDone?"✓":""}</div>
+        <div style="flex:1">
+          <div style="display:flex;gap:5px;margin-bottom:3px;flex-wrap:wrap">
+            <span class="pill" style="background:${cc(cat).bg};color:${cc(cat).text};border:1px solid ${cc(cat).border}">${cat}</span>
+            ${already||isDone?`<span style="font-size:10px;color:#6ee7b7;font-weight:bold">${tr.inLib}</span>`:""}
+          </div>
+          <div style="font-size:15px;font-weight:bold;color:#1a1a2e;margin-bottom:3px">${word}</div>
+          <div style="font-size:12px;color:#475569;line-height:1.5">${def}</div>
+          ${ex?`<div style="font-size:11px;color:#7c8a9e;font-style:italic;margin-top:3px">"${ex}"</div>`:""}
+        </div>
+      </div>`;
+    });
+    h+=`</div>
+    <div style="position:sticky;bottom:8px">
+      <button class="savebtn ${selCount>0?"active":"inactive"}" onclick="saveSel()">${selCount>0?`${tr.saveSelected} (${selCount})`:tr.saveSelected}</button>
+    </div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+function selTopic(t){S.dTopic=t;S.dCat=null;S.dSelected={};render()}
+function selCat(c){S.dCat=c;S.dSelected={};render()}
+function tRes(i){
+  const db=DB[S.lang]||DB.en;
+  if(!S.dTopic||!S.dCat)return;
+  const word=(db[S.dTopic][S.dCat][i]||"").split("|")[0];
+  if(inLib(word)||S.dSelected[i]==="done")return;
+  S.dSelected[i]=!S.dSelected[i];render();
+}
+function selAll(){
+  const db=DB[S.lang]||DB.en;
+  if(!S.dTopic||!S.dCat)return;
+  const terms=db[S.dTopic][S.dCat];
+  const s={};terms.forEach((_,i)=>{const w=(terms[i]||"").split("|")[0];if(!inLib(w))s[i]=true;});S.dSelected=s;render();
+}
+function saveSel(){
+  const db=DB[S.lang]||DB.en;
+  if(!S.dTopic||!S.dCat)return;
+  const terms=db[S.dTopic][S.dCat];
+  let count=0;
+  terms.forEach((termStr,i)=>{
+    if(S.dSelected[i]!==true)return;
+    const parts=termStr.split("|");
+    const word=parts[0],def=parts[1]||"",ex=parts[2]||"",cat=parts[3]||"Other";
+    if(inLib(word)||S.terms.length>=25)return;
+    S.terms=[{id:Date.now().toString()+Math.random(),word,definition:def,example:ex,translation:"",transLang:S.transLang,category:cat,tags:[],mastered:false,createdAt:new Date().toISOString()},...S.terms];
+    count++;
+  });
+  const ns={};Object.keys(S.dSelected).forEach(i=>{ns[i]="done"});S.dSelected=ns;
+  sv();showToast(t().added(count));render();
+}
+
+// ── WORD OF THE DAY ────────────────────────────────────────────────────────────
+function rWotd(){
+  const tr=t();
+  const db=WOTD_DB[S.wotdLang]||WOTD_DB.en;
+  const w=S.wotdWord;
+  let h=`<div style="padding:16px 14px 90px">
+    <h2>${tr.wotdTitle}</h2><p class="desc">${tr.wotdSub}</p>`;
+  if(S.streak.count>0){
+    h+=`<div class="streak"><span style="font-size:24px">🔥</span><div><div style="font-size:13px;font-weight:bold;color:#92400e">${S.streak.count>=3?`🔥 ${S.streak.count}-day streak!`:"Come back tomorrow to start your streak!"}</div><div style="font-size:11px;color:#b45309">${tr.streakLbl}: ${S.streak.count}</div></div></div>`;
+  }
+  h+=`<span class="seclbl">${tr.wotdLangLbl}</span><div class="langpicker">${LANGS.map(l=>`<button class="lpbtn ${S.wotdLang===l.code?"sel":""}" onclick="S.wotdLang='${l.code}';sv();render()">${l.flag} ${l.label}</button>`).join("")}</div>`;
+  h+=`<button class="btn" onclick="getWotd()">${w?tr.newWord:tr.getWord}</button>`;
+  if(w){
+    h+=`<div class="wotdcard">
+      <div style="font-size:11px;color:#a78bfa;letter-spacing:1px;margin-bottom:8px">${(w.type||"").toUpperCase()}</div>
+      <div style="font-size:26px;font-weight:bold;margin-bottom:4px">${w.word}</div>
+      ${w.pronunciation?`<div style="font-size:13px;color:#c4b5fd;margin-bottom:14px;font-style:italic">/${w.pronunciation}/</div>`:""}
+      <div style="font-size:14px;color:#e2e0f0;line-height:1.7">${w.definition}</div>
+      ${w.origin?`<div style="font-size:12px;color:#94a3b8;border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;margin-top:10px;line-height:1.5">🌱 ${w.origin}</div>`:""}
+    </div>
+    <div class="card">
+      <span class="seclbl">${tr.howToUse}</span>
+      ${w.example1?`<div style="font-size:13px;color:#1a1a2e;line-height:1.6;margin-bottom:8px;padding:8px 10px;background:#f8f6f2;border-radius:8px;border-left:3px solid #7c3aed">💼 "${w.example1}"</div>`:""}
+      ${w.example2?`<div style="font-size:13px;color:#1a1a2e;line-height:1.6;padding:8px 10px;background:#f8f6f2;border-radius:8px;border-left:3px solid #c026d3">🌿 "${w.example2}"</div>`:""}
+      ${w.tip?`<div style="margin-top:12px;padding:10px 12px;background:#faf5ff;border-radius:10px;border:1px solid #c4b5fd"><div style="font-size:11px;font-weight:bold;color:#7c3aed;margin-bottom:4px">💡 Tip</div><div style="font-size:13px;color:#4a1d96;line-height:1.5">${w.tip}</div></div>`:""}
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;${S.wotdShowStory?"margin-bottom:10px":""}">
+        <div style="font-size:13px;font-weight:bold;color:#1a1a2e">${tr.storyTitle}</div>
+        <button class="btn" style="width:auto;padding:5px 12px;margin:0;font-size:12px" onclick="S.wotdShowStory=!S.wotdShowStory;render()">${S.wotdShowStory?"↺":"Read →"}</button>
+      </div>
+      ${!S.wotdShowStory?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">${tr.storyDesc}</div>`:""}
+      ${S.wotdShowStory&&w.story?`<div style="font-size:13px;color:#1a1a2e;line-height:1.8;font-style:italic;border-top:1px solid #f0ede8;padding-top:10px">${w.story}</div>`:""}
+    </div>
+    <button class="btn ${S.wotdSaved?"outline":""}" style="${S.wotdSaved?"background:#d1fae5;border-color:#6ee7b7;color:#065f46":""}" onclick="saveWotd()" ${S.wotdSaved?"disabled":""}>${S.wotdSaved?tr.wordSaved:tr.saveWord}</button>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+function getWotd(){
+  const db=WOTD_DB[S.wotdLang]||WOTD_DB.en;
+  S.wotdIdx=(S.wotdIdx+1)%db.length;
+  S.wotdWord={...db[S.wotdIdx]};
+  // Add a mini story from the examples
+  S.wotdWord.story=`${S.wotdWord.example1} ${S.wotdWord.example2||""}`;
+  S.wotdSaved=false;S.wotdShowStory=false;
+  const td=today(),yd=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(S.streak.lastDate!==td){S.streak={count:S.streak.lastDate===yd?S.streak.count+1:1,lastDate:td};}
+  sv();render();
+}
+function saveWotd(){
+  if(!S.wotdWord||S.terms.length>=25){showToast(t().limitFull);return;}
+  S.terms=[{id:Date.now().toString(),word:S.wotdWord.word,definition:S.wotdWord.definition,example:S.wotdWord.example1||"",translation:"",transLang:S.transLang,category:"Social",tags:["daily-word"],mastered:false,createdAt:new Date().toISOString()},...S.terms];
+  S.wotdSaved=true;sv();render();
+}
+
+// ── NOTES ──────────────────────────────────────────────────────────────────────
+function rNotes(){
+  const tr=t();
+  if(S.noteEditing){
+    return`<div style="display:flex;flex-direction:column;height:calc(100dvh - 110px)">
+      <div style="display:flex;align-items:center;padding:10px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de;gap:10px;flex-shrink:0">
+        <button onclick="S.noteEditing=false;render()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">←</button>
+        <input style="flex:1;border:none;background:none;font-size:15px;font-weight:bold;color:#1a1a2e;outline:none;font-family:Georgia,serif;margin:0" placeholder="${tr.noteTitlePh}" value="${S.noteDraftTitle}" oninput="S.noteDraftTitle=this.value">
+        <button class="btn" style="width:auto;padding:7px 16px;margin:0;font-size:13px" onclick="sNote()">${tr.saveNote}</button>
+      </div>
+      <textarea style="flex:1;padding:16px 14px;border:none;outline:none;resize:none;font-size:14px;font-family:Georgia,serif;color:#1a1a2e;background:#faf8f5;line-height:1.9" placeholder="${tr.noteBodyPh}" oninput="S.noteDraftBody=this.value">${S.noteDraftBody}</textarea>
+    </div>`;
+  }
+  if(S.activeNote){
+    const n=S.activeNote;
+    return`<div>
+      <div style="display:flex;align-items:center;padding:10px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de;gap:10px">
+        <button onclick="S.activeNote=null;render()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">←</button>
+        <div style="flex:1;font-size:14px;font-weight:bold;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.title}</div>
+        <button onclick="eNote('${n.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;color:#94a3b8;padding:2px 6px">✎</button>
+        <button onclick="dNote('${n.id}')" style="background:none;border:none;cursor:pointer;font-size:15px;color:#ef4444;padding:2px 6px">✕</button>
+      </div>
+      <div style="padding:16px 14px 80px">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">${fmt(n.updatedAt)}</div>
+        <div style="font-size:14px;color:#1a1a2e;line-height:1.9;white-space:pre-wrap">${n.body}</div>
+      </div>
+    </div>`;
+  }
+  return`<div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de">
+      <div style="font-size:16px;font-weight:bold;color:#1a1a2e">${tr.notesTitle}</div>
+      <button class="btn" style="width:auto;padding:8px 14px;margin:0;font-size:13px" onclick="nNote()">${tr.newNote}</button>
+    </div>
+    ${S.notes.length===0?`<div class="empty"><div class="emptyicon">📝</div><div class="emptytitle">${tr.noNotes}</div><div class="emptydesc">${tr.noNotesDesc}</div></div>`:
+    `<div style="padding:10px 11px 80px">${S.notes.map(n=>`<div class="card" onclick="vNote('${n.id}')" style="cursor:pointer">
+      <div style="font-size:14px;font-weight:bold;color:#1a1a2e;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.title}</div>
+      <div style="font-size:12px;color:#64748b;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.body}</div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:5px">${fmt(n.updatedAt)}</div>
+    </div>`).join("")}</div>`}
+  </div>`;
+}
+function nNote(){S.noteEditing=true;S.activeNote=null;S.noteDraftTitle="";S.noteDraftBody="";render()}
+function vNote(id){S.activeNote=S.notes.find(n=>n.id===id)||null;render()}
+function eNote(id){const n=S.notes.find(n=>n.id===id);if(!n)return;S.activeNote=n;S.noteDraftTitle=n.title;S.noteDraftBody=n.body;S.noteEditing=true;render()}
+function dNote(id){S.notes=S.notes.filter(n=>n.id!==id);S.activeNote=null;sv();render()}
+function sNote(){
+  if(!S.noteDraftBody.trim()&&!S.noteDraftTitle.trim())return;
+  const entry={id:S.activeNote?.id||Date.now().toString(),title:S.noteDraftTitle.trim()||t().untitled,body:S.noteDraftBody.trim(),updatedAt:new Date().toISOString()};
+  S.notes=S.activeNote?S.notes.map(n=>n.id===S.activeNote.id?entry:n):[entry,...S.notes];
+  S.activeNote=entry;S.noteEditing=false;sv();render();
+}
+
+// ── MEMORY BOOST ───────────────────────────────────────────────────────────────
+function rBoost(){
+  const tr=t();const tips=TIPS[S.lang]||TIPS.en;
+  if(S.boostOpen!==null){
+    const tip=tips[S.boostOpen];
+    return`<div>
+      <div style="display:flex;align-items:center;padding:10px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de;gap:10px">
+        <button onclick="S.boostOpen=null;render()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">←</button>
+        <div style="font-size:14px;font-weight:bold;color:#1a1a2e">${tip[1]}</div>
+      </div>
+      <div style="padding:20px 16px 80px">
+        <div style="font-size:40px;text-align:center;margin-bottom:14px">${tip[0]}</div>
+        <span style="font-size:11px;font-weight:bold;padding:3px 10px;border-radius:20px;background:#f3e8ff;color:#7c3aed;display:inline-block;margin-bottom:14px">${tip[2]}</span>
+        <p style="font-size:15px;color:#1a1a2e;line-height:1.8;margin-bottom:20px">${tip[3]}</p>
+        <div style="background:#faf5ff;border:1px solid #c4b5fd;border-radius:12px;padding:14px 16px">
+          <div style="font-size:12px;font-weight:bold;color:#7c3aed;margin-bottom:6px">💡 ${S.lang==="en"?"Try this":"Essayez ceci"}</div>
+          <div style="font-size:14px;color:#4a1d96;line-height:1.7">${tip[4]}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  return`<div>
+    <div style="padding:12px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de">
+      <div style="font-size:16px;font-weight:bold;color:#1a1a2e;margin-bottom:2px">${tr.boostTitle}</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.4">${tr.boostDesc}</div>
+    </div>
+    <div style="padding:10px 11px 80px">
+      ${tips.map((tip,i)=>`<div class="boostcard" onclick="S.boostOpen=${i};render()">
+        <div style="font-size:28px;flex-shrink:0">${tip[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:2px">${tip[1]}</div>
+          <div style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tip[3].slice(0,70)}…</div>
+        </div>
+        <div style="font-size:12px;color:#7c3aed;font-weight:bold;flex-shrink:0">${tr.read}</div>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+// ── GAME ───────────────────────────────────────────────────────────────────────
+function rGame(){
+  const tr=t();const playable=S.terms.filter(k=>k.definition?.trim());
+  if(playable.length<6)return`<div class="empty"><div class="emptyicon">🎮</div><div class="emptytitle">${tr.notEnough}</div></div>`;
+  if(S.gameState==="setup")return`<div style="display:flex;align-items:center;justify-content:center;padding:20px;min-height:400px">
+    <div class="card" style="text-align:center;max-width:340px;width:100%">
+      <div style="font-size:34px;margin-bottom:8px">🎮</div>
+      <p class="desc">${tr.gameDesc}</p>
+      <p style="font-size:12px;font-weight:bold;color:#475569;margin-bottom:10px">${tr.pickDiff}</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+        ${["easy","medium","hard"].map(d=>`<button onclick="S.gameDiff='${d}';render()" style="padding:7px 13px;border:${S.gameDiff===d?"2px solid #7c3aed":"1px solid #ddd"};border-radius:8px;background:${S.gameDiff===d?"#f3e8ff":"none"};color:${S.gameDiff===d?"#7c3aed":"#475569"};font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:${S.gameDiff===d?"bold":"normal"}">${tr[d]}</button>`).join("")}
+      </div>
+      <button class="btn" onclick="startGame()">${tr.play}</button>
+    </div>
+  </div>`;
+  if(S.gameState==="won")return`<div style="display:flex;align-items:center;justify-content:center;padding:20px;min-height:400px">
+    <div class="card" style="text-align:center;max-width:300px;width:100%">
+      <div style="font-size:48px;margin-bottom:8px">🏆</div>
+      <h2 style="margin-bottom:8px">${tr.won}</h2>
+      <p class="desc">${tr.wonDesc(S.gameMoves,S.gameSecs)}</p>
+      <button class="btn" onclick="S.gameState='setup';render()">${tr.playAgain}</button>
+    </div>
+  </div>`;
+  const cols=S.gameCards.length<=12?3:4;
+  return`<div>
+    <div style="display:flex;gap:12px;align-items:center;padding:8px 14px;background:#faf8f5;border-bottom:1px solid #e8e4de;flex-wrap:wrap">
+      <span style="font-size:12px;color:#64748b">${tr.moves}: <b>${S.gameMoves}</b></span>
+      <span style="font-size:12px;color:#64748b">${tr.matched}: <b>${S.gameMatched.length}/${S.gameCards.length/2}</b></span>
+      <span style="font-size:12px;color:#64748b">${tr.time}: <b>${S.gameSecs}s</b></span>
+      <button class="btn outline" style="width:auto;padding:5px 12px;margin:0;font-size:12px;margin-left:auto" onclick="S.gameState='setup';clearInterval(gameTimer);render()">${tr.playAgain}</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;padding:10px;padding-bottom:80px">
+      ${S.gameCards.map((card,i)=>{
+        const flp=S.gameFlipped.find(f=>f.id===card.id)||S.gameMatched.includes(card.pairId);
+        const mat=S.gameMatched.includes(card.pairId);
+        return`<div onclick="flipCard(${i})" style="background:${mat?"#f0fdf8":flp?"#fff":"#120f2e"};border-radius:10px;min-height:80px;cursor:${mat?"default":"pointer"};display:flex;align-items:center;justify-content:center;border:2px solid ${mat?"#6ee7b7":flp?"#7c3aed":"transparent"};padding:6px;transition:background 0.15s">
+          ${flp?`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%"><div style="font-size:7px;letter-spacing:2px;color:#94a3b8;font-family:monospace">${card.type==="term"?tr.termCard:tr.defCard}</div><div style="font-size:11px;color:#1a1a2e;text-align:center;line-height:1.3;font-weight:bold">${card.content}</div></div>`:`<div style="font-size:20px;color:rgba(255,255,255,0.1);font-weight:bold">?</div>`}
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+function startGame(){
+  const playable=S.terms.filter(k=>k.definition?.trim());
+  const pairCount=S.gameDiff==="easy"?6:S.gameDiff==="medium"?10:16;
+  const pool=shuf(playable).slice(0,pairCount);
+  const built=[];
+  pool.forEach((term,i)=>{built.push({id:`t${i}`,pairId:i,type:"term",content:term.word});built.push({id:`d${i}`,pairId:i,type:"def",content:term.definition.length>80?term.definition.slice(0,80)+"…":term.definition});});
+  S.gameCards=shuf(built);S.gameFlipped=[];S.gameMatched=[];S.gameMoves=0;S.gameSecs=0;S.gameLocked=false;S.gameState="playing";
+  clearInterval(gameTimer);gameTimer=setInterval(()=>{S.gameSecs++;render();},1000);
+  render();
+}
+function flipCard(i){
+  const card=S.gameCards[i];
+  if(S.gameLocked||S.gameFlipped.length>=2||S.gameFlipped.find(f=>f.id===card.id)||S.gameMatched.includes(card.pairId))return;
+  const nf=[...S.gameFlipped,card];S.gameFlipped=nf;
+  if(nf.length===2){
+    S.gameMoves++;S.gameLocked=true;
+    if(nf[0].pairId===nf[1].pairId){const nm=[...S.gameMatched,nf[0].pairId];S.gameMatched=nm;S.gameFlipped=[];S.gameLocked=false;if(nm.length===S.gameCards.length/2){clearInterval(gameTimer);S.gameState="won";}}
+    else setTimeout(()=>{S.gameFlipped=[];S.gameLocked=false;render();},900);
+  }
+  render();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+document.getElementById("langbtn").textContent=S.lang==="en"?"FR":"EN";
+render();
+</script>
+</body>
+</html>
